@@ -59,14 +59,21 @@ void quicksort(size_t * a, size_t p, size_t r) {
 int main() {
 
     int i;
-    int sizes[] = {pow(10,4), pow(10,5), pow(10,6), pow(10,7)};
+    int sizes[] = {pow(10,1), pow(10,2), pow(10,3), pow(10,4)};
     const gsl_rng_type * T;
     gsl_rng * r;
     size_t N;
 
+    gsl_rng_env_setup();
+    T = gsl_rng_default;
+    r = gsl_rng_alloc(T);
+
+    gsl_permutation * p = gsl_permutation_alloc(100);
+    gsl_permutation_init(p);
+
     unsigned int * collection = (unsigned int *)malloc(sizeof(unsigned int) * 100);
 
-    FILE *record = fopen("record.txt", "a+");
+    FILE * record = fopen("record.txt", "a+");
     if (record == NULL) {
         printf("Error opening file.\n");
         return 1;
@@ -77,27 +84,28 @@ int main() {
         int any_number = rand() % 4;
         printf("%d %d \n", any_number, sizes[any_number]);
 
-        N = sizes[any_number];
+        // N = sizes[any_number];
+        N = 100;
 
-        gsl_permutation * p = gsl_permutation_alloc(N);
-        gsl_permutation_init(p);
+        // moved out permutation creation and initialization
 
-        gsl_rng_env_setup();
-        T = gsl_rng_default;
-        r = gsl_rng_alloc(T);
+        // moved the random number generator creation from inside of for loop to outside
 
         gsl_ran_shuffle (r, p->data, N, sizeof(size_t));
 
-        gsl_permutation_fprintf(record, p, " %u");
+        gsl_permutation_fprintf(stdout, p, " %u");
 
         quicksort(p->data, 0, N-1);
         collection[i] = number_of_comparisions;
-        printf("no of comp for %dth iteration is: %llu", i, number_of_comparisions);
+        printf("no of comp for %dth iteration is: %llu\n", i, number_of_comparisions);
         number_of_comparisions = 0;
 
-        gsl_permutation_free(p);
-        gsl_rng_free(r);
+        // moved freeing up permutation resources
+
         fprintf(record, "\n");
     }
     free(collection);
+
+    gsl_permutation_free(p);
+    gsl_rng_free(r);
 }
