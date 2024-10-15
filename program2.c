@@ -13,6 +13,7 @@ typedef struct tree_node
     long long int data;
     struct tree_node * left;
     struct tree_node * right;
+    struct tree_node * parent;
 } node;
 
 node * create_node(long long int data) {
@@ -25,6 +26,7 @@ node * create_node(long long int data) {
     new_node->data = data;
     new_node->left = NULL;
     new_node->right = NULL;
+    new_node->parent = NULL;
     return new_node;
 }
 
@@ -85,14 +87,14 @@ bool is_tree_empty(node * tree) {
         return false;
 }
 
-bool insert_node(node * tree, long long int data) {
+node * insert_node(node * tree, long long int data) {
 
     node * new_node = create_node(data);
 
     if (is_tree_empty(tree)) {
         tree = new_node;
-        printf("\nInsertion success\n");
-        return true;
+        printf("\nInsertion success. %lld inserted on empty tree\n", new_node->data);
+        return tree;
     }
     node * ptr = tree;
     node * parent_ptr = NULL;
@@ -101,7 +103,7 @@ bool insert_node(node * tree, long long int data) {
         parent_ptr = ptr;
         if (new_node->data == ptr->data) {
             printf("\nNode already present. Duplicate node cannot be inserted.\n");
-            return false;
+            return tree;
         }
         else if (new_node->data < ptr->data) {
             ptr = ptr->left;
@@ -114,7 +116,8 @@ bool insert_node(node * tree, long long int data) {
     } else {
         parent_ptr->right = new_node;
     }
-    return true;
+    new_node->parent = parent_ptr;
+    return tree;
 }
 
 node * search_node(node * tree, long long int data){
@@ -143,13 +146,15 @@ int main(int argc, char *argv[]) {
     gtk_init(&argc, &argv);
 
     // Create binary tree
-    node *root = create_node(1);
-    root->left = create_node(2);
-    root->right = create_node(3);
-    root->left->left = create_node(4);
-    root->left->right = create_node(5);
-    root->right->left = create_node(6);
-    root->right->right = create_node(7);
+    node * root = create_empty_tree();
+
+    root = insert_node(root,1);
+    insert_node(root,2);
+    insert_node(root,3);
+    insert_node(root,4);
+    insert_node(root,5);
+    insert_node(root,6);
+    insert_node(root,7);
 
     insert_node(root, 15);
 
@@ -159,6 +164,9 @@ int main(int argc, char *argv[]) {
     } else {
         printf("found at location: %p %lld\n", found_or_not, found_or_not->data);
     }
+
+    printf("parent of node 4 is: %lld\n", search_node(root, 4)->parent->data);
+    printf("parent of node 15 is: %lld\n", search_node(root, 15)->parent->data);
 
     // Create GTK window
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
