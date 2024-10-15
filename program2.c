@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <gtk/gtk.h>
 #include <math.h>
+#include <stdbool.h>
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -14,16 +15,34 @@ typedef struct tree_node
     struct tree_node * right;
 } node;
 
+node * create_node(int data) {
+
+    node * new_node = (node *) malloc (sizeof(node));
+    if (new_node == NULL) {
+        printf("\nmemory allocation has failed.\n");
+        return new_node;
+    }
+    new_node->data = data;
+    new_node->left = NULL;
+    new_node->right = NULL;
+    return new_node;
+}
+
 // Function to draw circles and lines for binary tree
 void draw_node(cairo_t *cr, node *root, int x, int y, int dx, int depth) {
     if (root == NULL) return;
 
     char buffer[10];
-    snprintf(buffer, sizeof(buffer), "%d", root->data);
+    snprintf(buffer, sizeof(buffer), "%lld", root->data);
 
-    cairo_set_source_rgb(cr, 0, 0, 0);  // Set color to black
-    cairo_arc(cr, x, y, 20, 0, 2 * M_PI);  // Draw circle
-    cairo_stroke(cr);  // Stroke the circle
+    // Set color to white and fill the circle
+    cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);  // White color (R, G, B all set to 1.0)
+    cairo_arc(cr, x, y, 20, 0, 2 * M_PI);     // Draw circle
+    cairo_fill_preserve(cr);                  // Fill the circle but keep the path for stroking
+
+    // Set color to black and stroke the circle
+    cairo_set_source_rgb(cr, 0, 0, 0);        // Black color
+    cairo_stroke(cr);
     
     // Draw text
     cairo_move_to(cr, x - 10, y + 5);
@@ -53,8 +72,48 @@ gboolean on_draw_event(GtkWidget *widget, cairo_t *cr, gpointer data) {
     return FALSE;
 }
 
+node * create_empty_tree() {
 
-int main() {
+    return NULL;
+}
+
+bool is_tree_empty(node * tree) {
+
+    if (tree == NULL)
+        return true;
+    else
+        return false;
+}
 
 
+int main(int argc, char *argv[]) {
+
+    gtk_init(&argc, &argv);
+
+    // Create binary tree
+    node *root = create_node(1);
+    root->left = create_node(2);
+    root->right = create_node(3);
+    root->left->left = create_node(4);
+    root->left->right = create_node(5);
+    root->right->left = create_node(6);
+    root->right->right = create_node(7);
+
+    // Create GTK window
+    GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gtk_window_set_title(GTK_WINDOW(window), "Binary Tree");
+    gtk_window_set_default_size(GTK_WINDOW(window), 800, 600);
+    g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+
+    // Create drawing area
+    GtkWidget *darea = gtk_drawing_area_new();
+    gtk_container_add(GTK_CONTAINER(window), darea);
+    g_signal_connect(G_OBJECT(darea), "draw", G_CALLBACK(on_draw_event), root);
+
+    // Show all widgets
+    gtk_widget_show_all(window);
+
+    gtk_main();
+
+    return 0;
 }
