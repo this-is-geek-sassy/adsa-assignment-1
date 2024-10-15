@@ -7,7 +7,6 @@
 #define M_PI 3.14159265358979323846
 #endif
 #include <gobject/gsignal.h>
-#include <math.h>
 #include <gsl/gsl_permutation.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
@@ -17,7 +16,8 @@
 
 typedef struct tree_node
 {
-    long long int data;
+    long long unsigned int data;
+    long long int height;
     struct tree_node * left;
     struct tree_node * right;
     struct tree_node * parent;
@@ -26,7 +26,27 @@ typedef struct tree_node
 // Global zoom factor
 double zoom_factor = 1.0;
 
-node * create_node(long long int data) {
+// Function to calculate the absolute height of the BST
+int height(node * root) {
+    if (root == NULL) {
+        return -1; // Return -1 for the height of an empty tree
+    }
+    int leftHeight = height(root->left);
+    int rightHeight = height(root->right);
+    return 1 + (leftHeight > rightHeight ? leftHeight : rightHeight);
+}
+
+// Function to calculate the AVL height of the BST
+long long int avl_height(node * root) {
+    if (root == NULL) {
+        return -1; // Return -1 for the height of an empty tree
+    }
+    int leftHeight = height(root->left);
+    int rightHeight = height(root->right);
+    return leftHeight - rightHeight;
+}
+
+node * create_node(long long unsigned int data) {
 
     node * new_node = (node *) malloc (sizeof(node));
     if (new_node == NULL) {
@@ -37,6 +57,7 @@ node * create_node(long long int data) {
     new_node->left = NULL;
     new_node->right = NULL;
     new_node->parent = NULL;
+    new_node->height = 0;
     return new_node;
 }
 
@@ -97,7 +118,100 @@ bool is_tree_empty(node * tree) {
         return false;
 }
 
-node * insert_node(node * tree, long long int data) {
+node * left_left_rotation(node * grandfather) {
+
+    printf("ll rotation called on node %lld\n", grandfather->data);
+
+    node * father = grandfather->left;
+    node * child = father->left;
+
+    grandfather->left = father->right;
+
+    if (father->right)
+        father->right->parent = grandfather; // NULL check safety
+
+    father->right = grandfather;
+    father->parent = grandfather->parent;
+
+    if (grandfather->parent) {
+        if (grandfather->parent->left == grandfather) {
+            grandfather->parent->left = father;
+        } else {
+            grandfather->parent->right = father;
+        }
+    }
+    grandfather->parent = father;
+
+    grandfather->height = avl_height(grandfather);
+    father->height = avl_height(father);
+
+    printf("ll rotation ended, new position holding by node: %lld\n", father->data);
+
+    return father;
+}
+
+node * right_right_rotation (node * grandfather) {
+
+    printf("rr rotation called on node %lld\n", grandfather->data);
+
+    node * father = grandfather->right;
+    node * child = father->right;
+
+    grandfather->right = father->left;
+
+    if (father->left) {
+        father->left->parent = grandfather; // NULL check safety
+    }
+
+    father->left = grandfather;
+    father->parent = grandfather->parent;
+
+    if (grandfather->parent) {
+        if (grandfather->parent->left == grandfather) {
+            grandfather->parent->left = father;
+        } else {
+            grandfather->parent->right = father;
+        }
+    }
+    grandfather->parent = father;
+
+    grandfather->height = avl_height(grandfather);
+    father->height = avl_height(father);
+
+    printf("rr rotation ended, new position holding by node: %lld\n", father->data);
+
+    return father;
+}
+
+node * right_left_rotation(node * grandfather) {
+
+    printf("rl rotation called on node %lld\n", grandfather->data);
+
+    node * father = grandfather->right;
+    node * child = father->left;
+
+    node * new_father = left_left_rotation(father);
+    node * new_grandfather = right_right_rotation(grandfather);
+
+    printf("rl rotation ended, new position is holding by node: %lld\n", new_father->data);
+    return new_father;
+}
+
+node * left_right_rotation(node * grandfather) {
+
+    printf("lr rotation called on node %lld\n", grandfather->data);
+
+    node * father = grandfather->left;
+    node * child = father->right;
+
+    node * new_father = right_right_rotation(father);
+    node * new_grandfather = left_left_rotation(grandfather);
+
+    printf("lr rotation ended, new position is holding by node: %lld\n", new_father->data);
+    return new_father;
+}
+
+node * insert_node(node * tree, long long unsigned int data) {
 
     node * new_node = create_node(data);
 
@@ -127,6 +241,54 @@ node * insert_node(node * tree, long long int data) {
         parent_ptr->right = new_node;
     }
     new_node->parent = parent_ptr;
+
+    if (parent_ptr->parent == NULL) {
+        printf("\nInsertion success. %lld inserted.\n", new_node->data);
+        parent_ptr->height = avl_height(parent_ptr);
+        return parent_ptr;
+    }
+    
+    node * grandparent_ptr = parent_ptr->parent;
+    parent_ptr->height = avl_height(parent_ptr);
+    grandparent_ptr->height = avl_height(grandparent_ptr);
+
+    while(grandparent_ptr != tree) {
+        grandparent_ptr->height = avl_height(grandparent_ptr);
+        if (abs(grandparent_ptr->height) >= 2) {
+            break;
+        }
+        new_node = parent_ptr;
+        parent_ptr = grandparent_ptr;
+        grandparent_ptr = grandparent_ptr->parent;
+    }
+    
+    if (abs(grandparent_ptr->height) >= 2) {
+        printf("%lld->height: %lld\n", grandparent_ptr->data, grandparent_ptr->height);
+
+        if (new_node->data < grandparent_ptr->data && new_node-> data < parent_ptr->data) {
+            node * father = left_left_rotation(grandparent_ptr);
+            printf("new avl height of father of %lld is: %lld\n", new_node->data, avl_height(father));
+        }
+        else if (new_node->data > grandparent_ptr->data && new_node-> data > parent_ptr->data)
+        {
+            node * father = right_right_rotation(grandparent_ptr);
+            printf("new avl height of father of %lld is: %lld\n", new_node->data, avl_height(father));
+        }
+        else if (new_node->data > grandparent_ptr->data && new_node-> data < parent_ptr->data) {
+            node * father = right_left_rotation(grandparent_ptr);
+            printf("new avl height of father of %lld is: %lld\n", new_node->data, avl_height(father));
+        }
+        else if (new_node->data < grandparent_ptr->data && new_node-> data > parent_ptr->data) {
+            node * father = left_right_rotation(grandparent_ptr);
+            printf("new avl height of father of %lld is: %lld\n", new_node->data, avl_height(father));
+        }
+        
+    }
+    while (tree->parent != NULL)
+    {
+        tree = tree->parent;
+    }
+    
     return tree;
 }
 
@@ -287,7 +449,7 @@ gboolean on_scroll_event(GtkWidget *widget, GdkEventScroll *event, gpointer data
 
 void insert_and_redraw(GtkWidget *widget, gpointer data) {
     node *root = (node *)data;
-    long long int new_value;  // Example value, you can take input from a user
+    long long unsigned int new_value;  // Example value, you can take input from a user
     printf("\nEnter the new value to enter into the tree\n");
     scanf("%lld", &new_value);
     root = insert_node(root, new_value);
@@ -323,7 +485,7 @@ int main(int argc, char *argv[]) {
 
     unsigned int seed = time(0);
 
-    int any_number = rand_r(&seed) % 4;
+    int any_number = rand_r(&seed) % 10;
     printf("%d %d \n", any_number, sizes[any_number]);
 
     // N = sizes[any_number];
@@ -350,30 +512,32 @@ int main(int argc, char *argv[]) {
     // Create binary tree
     node * root = create_empty_tree();
 
-    // printf("size of size_t is %lu\n", sizeof(size_t));
+    printf("size of size_t is %lu\n", sizeof(size_t));
     for (i=0; i<N; i++) {
         root = insert_node(root, p->data[i]);
     }
 
-    // root = insert_node(root,5);
-    // insert_node(root,4);
-    // insert_node(root,7);
-    // insert_node(root,2);
+    // root = insert_node(root, 6);
+    // root = insert_node(root, 14);
+    // root = insert_node(root, 7);
+    
     // insert_node(root,1);
     // insert_node(root,6);
     // insert_node(root,3);
+    // insert_node(root, 20);
+    // insert_node(root, 21);
 
     // insert_node(root, 15);
 
-    node * found_or_not = search_node(root, 15);
-    if (found_or_not == NULL) {
-        printf("node not found\n");
-    } else {
-        printf("found at location: %p %lld\n", found_or_not, found_or_not->data);
-    }
+    // node * found_or_not = search_node(root, 15);
+    // if (found_or_not == NULL) {
+    //     printf("node not found\n");
+    // } else {
+    //     printf("found at location: %p %lld\n", found_or_not, found_or_not->data);
+    // }
 
-    printf("parent of node 4 is: %lld\n", search_node(root, 4)->parent->data);
-    printf("parent of node 15 is: %lld\n", search_node(root, 15)->parent->data);
+    // printf("parent of node 4 is: %lld\n", search_node(root, 4)->parent->data);
+    // printf("parent of node 15 is: %lld\n", search_node(root, 15)->parent->data);
 
     // Create GTK window
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -409,7 +573,7 @@ int main(int argc, char *argv[]) {
     gtk_main();
 
     
-    
+    printf("Height of the BST is: %d\n", height(root));
 
     return 0;
 }
