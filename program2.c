@@ -15,7 +15,7 @@ typedef struct tree_node
     struct tree_node * right;
 } node;
 
-node * create_node(int data) {
+node * create_node(long long int data) {
 
     node * new_node = (node *) malloc (sizeof(node));
     if (new_node == NULL) {
@@ -85,6 +85,38 @@ bool is_tree_empty(node * tree) {
         return false;
 }
 
+bool insert_node(node * tree, long long int data) {
+
+    node * new_node = create_node(data);
+
+    if (is_tree_empty(tree)) {
+        tree = new_node;
+        printf("\nInsertion success\n");
+        return true;
+    }
+    node * ptr = tree;
+    node * parent_ptr = NULL;
+
+    while(ptr != NULL) {
+        parent_ptr = ptr;
+        if (new_node->data == ptr->data) {
+            printf("\nNode already present. Duplicate node cannot be inserted.\n");
+            return false;
+        }
+        else if (new_node->data < ptr->data) {
+            ptr = ptr->left;
+        } else {
+            ptr = ptr->right;
+        }
+    }
+    if (new_node->data < parent_ptr->data) {
+        parent_ptr->left = new_node;
+    } else {
+        parent_ptr->right = new_node;
+    }
+    return true;
+}
+
 
 int main(int argc, char *argv[]) {
 
@@ -98,6 +130,8 @@ int main(int argc, char *argv[]) {
     root->left->right = create_node(5);
     root->right->left = create_node(6);
     root->right->right = create_node(7);
+
+    insert_node(root, 15);
 
     // Create GTK window
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
