@@ -6,6 +6,7 @@
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
+#include <gobject/gsignal.h>
 
 
 typedef struct tree_node
@@ -140,6 +141,150 @@ node * search_node(node * tree, long long int data){
     return NULL;  // node not found in the tree
 }
 
+int determie_orientation(node * node_to_be_deleted) {
+
+    if ((node_to_be_deleted->left == NULL) && (node_to_be_deleted->right == NULL))
+        return -1;  // leaf node
+    else if ((node_to_be_deleted->left == NULL) && (node_to_be_deleted->right != NULL))
+        return 0;  // only left_null
+    else if ((node_to_be_deleted->left != NULL) && (node_to_be_deleted->right == NULL))
+        return 1;  // only right_null
+    else
+        return 2;   // degree 2 node
+}
+
+bool is_singleton_tree(node * tree) {
+
+    if (tree == NULL)
+        return false;
+    
+    if (tree->left==NULL && tree->right==NULL)
+        return true;
+    
+    return false;
+}
+
+node * find_max(node * root) {
+
+    if (root == NULL) {
+        return NULL; // If tree is empty, return NULL
+    }
+
+    node * current = root;
+
+    // Traverse to the rightmost node
+    while (current->right != NULL) {
+        current = current->right;
+    }
+    printf("Max node is having key: %lld\n", current->data);
+    return current; // The rightmost node contains the maximum value
+}
+
+node * delete_node(node * tree, long long int data){
+
+    // search the node first
+    node * node_to_be_deleted = search_node(tree, data);
+    if (node_to_be_deleted == NULL) {
+        printf("the node to be deleted was already deleted, hence cannot be faound.\n");
+        return NULL;
+    }
+
+    // determine is_leaf or left_null or right_null or degree_2 node
+    int val = determie_orientation(node_to_be_deleted);
+
+    if (is_singleton_tree(tree))
+    {
+        printf("only node of the tree (%lld) is now getting delted. Tree will be empty now.\n", node_to_be_deleted->data);
+        free(node_to_be_deleted);
+        tree = NULL;
+    }
+    else if (val == -1 && !is_singleton_tree(tree)) {
+        node * parent_ptr = node_to_be_deleted->parent;
+        if (parent_ptr->left == node_to_be_deleted) {
+            parent_ptr->left = NULL;
+        } else {
+            parent_ptr->right = NULL;
+        }
+        printf("leaf node deletion (%lld) success.\n", node_to_be_deleted->data);
+        free(node_to_be_deleted);
+    }
+    else if(val == 0){
+        // the left subtree is blank
+        node * parent_ptr = node_to_be_deleted->parent;
+        if (parent_ptr->left == node_to_be_deleted) {
+            parent_ptr->left = node_to_be_deleted->right;
+        } else {
+            parent_ptr->right = node_to_be_deleted->right;
+        }
+        node_to_be_deleted->right->parent = parent_ptr;
+        free(node_to_be_deleted);
+    }
+    else if (val == 1) {
+        // the right subtree is blank
+        node * parent_ptr = node_to_be_deleted->parent;
+        if (parent_ptr->left == node_to_be_deleted) {
+            parent_ptr->left = node_to_be_deleted->left;
+        } else {
+            parent_ptr->right = node_to_be_deleted->left;
+        }
+        node_to_be_deleted->left->parent = parent_ptr;
+        free(node_to_be_deleted);
+    }
+    else if (val == 2) {
+        // internal node having degree 2
+        node * parent_ptr = node_to_be_deleted->parent;
+        node * inorder_predecessor = find_max(node_to_be_deleted->left);
+
+        // a very tricky step after a nice observation
+        if (inorder_predecessor->parent->right == inorder_predecessor) {
+            inorder_predecessor->parent->right = inorder_predecessor->left;
+            // inorder_predecessor->left->parent = inorder_predecessor->parent;
+        } else
+        {
+            inorder_predecessor->parent->left = inorder_predecessor->left;
+            // inorder_predecessor->left->parent = inorder_predecessor->parent;
+        }
+        if (inorder_predecessor->left != NULL)
+            inorder_predecessor->left->parent = inorder_predecessor->parent;
+
+        // replacing node_to_be_deleted with its inorder_predecessor
+        inorder_predecessor->left = node_to_be_deleted->left;
+        inorder_predecessor->right = node_to_be_deleted->right;
+        inorder_predecessor->parent = node_to_be_deleted->parent;
+
+        if (node_to_be_deleted->parent->left == node_to_be_deleted) {
+            node_to_be_deleted->parent->left = inorder_predecessor;
+        } else {
+            node_to_be_deleted->parent->right = inorder_predecessor;
+        }
+        printf("the degree 2 node %lld is ready to be deleted. Its inorder predecessor %lld is replacing the node.\n",
+                node_to_be_deleted->data, inorder_predecessor->data);
+        free(node_to_be_deleted);
+    }
+}
+
+
+void insert_and_redraw(GtkWidget *widget, gpointer data) {
+    node *root = (node *)data;
+    long long int new_value;  // Example value, you can take input from a user
+    printf("\nEnter the new value to enter into the tree\n");
+    scanf("%lld", &new_value);
+    root = insert_node(root, new_value);
+
+    gtk_widget_queue_draw(widget);  // Request redraw of the drawing area
+}
+
+void delete_and_redraw(GtkWidget *widget, gpointer data) {
+    node *root = (node *)data;
+    long long int delete_value;  // Example value to delete
+    printf("\nEnter the new value to delete from the tree\n");
+    scanf("%lld", &delete_value);
+    root = delete_node(root, delete_value);
+
+    gtk_widget_queue_draw(widget);  // Request redraw of the drawing area
+}
+
+
 
 int main(int argc, char *argv[]) {
 
@@ -148,13 +293,13 @@ int main(int argc, char *argv[]) {
     // Create binary tree
     node * root = create_empty_tree();
 
-    root = insert_node(root,1);
-    insert_node(root,2);
-    insert_node(root,3);
+    root = insert_node(root,5);
     insert_node(root,4);
-    insert_node(root,5);
-    insert_node(root,6);
     insert_node(root,7);
+    insert_node(root,2);
+    insert_node(root,1);
+    insert_node(root,6);
+    insert_node(root,3);
 
     insert_node(root, 15);
 
@@ -174,15 +319,32 @@ int main(int argc, char *argv[]) {
     gtk_window_set_default_size(GTK_WINDOW(window), 800, 600);
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
+    // Create layout container
+    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    gtk_container_add(GTK_CONTAINER(window), vbox);
+
     // Create drawing area
     GtkWidget *darea = gtk_drawing_area_new();
-    gtk_container_add(GTK_CONTAINER(window), darea);
+    gtk_box_pack_start(GTK_BOX(vbox), darea, TRUE, TRUE, 0);
     g_signal_connect(G_OBJECT(darea), "draw", G_CALLBACK(on_draw_event), root);
+
+    // Create button to insert and redraw tree
+    GtkWidget *insert_button = gtk_button_new_with_label("Insert Node");
+    g_signal_connect(insert_button, "clicked", G_CALLBACK(insert_and_redraw), root);
+    gtk_box_pack_start(GTK_BOX(vbox), insert_button, FALSE, FALSE, 0);
+
+    // Create button to delete and redraw tree
+    GtkWidget *delete_button = gtk_button_new_with_label("Delete Node");
+    g_signal_connect(delete_button, "clicked", G_CALLBACK(delete_and_redraw), root);
+    gtk_box_pack_start(GTK_BOX(vbox), delete_button, FALSE, FALSE, 0);
 
     // Show all widgets
     gtk_widget_show_all(window);
 
     gtk_main();
+
+    // root = delete_node(root, 4);
+    find_max(root);
 
     return 0;
 }
