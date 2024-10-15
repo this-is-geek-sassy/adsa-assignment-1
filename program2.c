@@ -117,6 +117,26 @@ bool insert_node(node * tree, long long int data) {
     return true;
 }
 
+node * search_node(node * tree, long long int data){
+
+    node * ptr = tree;
+    node * parent_ptr = NULL;
+
+    while(ptr != NULL) {
+        parent_ptr = ptr;
+        if (data == ptr->data) {
+            printf("\nNode found...\n");
+            return ptr;
+        }
+        else if (data < ptr->data) {
+            ptr = ptr->left;
+        } else {
+            ptr = ptr->right;
+        }
+    }
+    return NULL;  // node not found in the tree
+}
+
 
 int main(int argc, char *argv[]) {
 
@@ -132,6 +152,13 @@ int main(int argc, char *argv[]) {
     root->right->right = create_node(7);
 
     insert_node(root, 15);
+
+    node * found_or_not = search_node(root, 15);
+    if (found_or_not == NULL) {
+        printf("node not found\n");
+    } else {
+        printf("found at location: %p %lld\n", found_or_not, found_or_not->data);
+    }
 
     // Create GTK window
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
