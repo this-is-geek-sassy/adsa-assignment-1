@@ -7,6 +7,12 @@
 #define M_PI 3.14159265358979323846
 #endif
 #include <gobject/gsignal.h>
+#include <math.h>
+#include <gsl/gsl_permutation.h>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_statistics.h>
+#include <time.h>
 
 
 typedef struct tree_node
@@ -289,6 +295,42 @@ void delete_and_redraw(GtkWidget *widget, gpointer data) {
 int main(int argc, char *argv[]) {
 
     gtk_init(&argc, &argv);
+
+    int i;
+    int sizes[] = {pow(10,1), pow(10,2), pow(10,3), pow(10,4)};
+    const gsl_rng_type * T;
+    gsl_rng * r;
+    size_t N;
+
+    gsl_rng_env_setup();
+    T = gsl_rng_default;
+    r = gsl_rng_alloc(T);
+
+    unsigned int seed = time(0);
+
+    int any_number = rand_r(&seed) % 4;
+    printf("%d %d \n", any_number, sizes[any_number]);
+
+    // N = sizes[any_number];
+    N = 30;
+
+    gsl_permutation * p = gsl_permutation_alloc(N);
+    gsl_permutation_init(p);
+
+    double * collection = (double *)malloc(sizeof(double) * 100);
+
+    FILE * record = fopen("record2.txt", "a+");
+    if (record == NULL) {
+        printf("Error opening file.\n");
+        return 1;
+    }
+
+    gsl_ran_shuffle (r, p->data, N, sizeof(size_t));
+
+    for (i=0; i<any_number; i++) {
+        gsl_ran_shuffle (r, p->data, N, sizeof(size_t));
+    }
+    gsl_permutation_fprintf(record, p, " %u");
 
     // Create binary tree
     node * root = create_empty_tree();
