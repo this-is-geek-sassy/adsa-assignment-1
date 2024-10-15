@@ -23,6 +23,9 @@ typedef struct tree_node
     struct tree_node * parent;
 } node;
 
+// Global zoom factor
+double zoom_factor = 1.0;
+
 node * create_node(long long int data) {
 
     node * new_node = (node *) malloc (sizeof(node));
@@ -269,6 +272,18 @@ node * delete_node(node * tree, long long int data){
     }
 }
 
+// Scroll event handler to zoom in/out
+gboolean on_scroll_event(GtkWidget *widget, GdkEventScroll *event, gpointer data) {
+    if (event->direction == GDK_SCROLL_UP) {
+        zoom_factor *= 1.1;  // Zoom in
+    } else if (event->direction == GDK_SCROLL_DOWN) {
+        zoom_factor /= 1.1;  // Zoom out
+    }
+
+    gtk_widget_queue_draw(widget);  // Request redraw with updated zoom factor
+    return TRUE;
+}
+
 
 void insert_and_redraw(GtkWidget *widget, gpointer data) {
     node *root = (node *)data;
@@ -312,7 +327,7 @@ int main(int argc, char *argv[]) {
     printf("%d %d \n", any_number, sizes[any_number]);
 
     // N = sizes[any_number];
-    N = 30;
+    N = 20;
 
     gsl_permutation * p = gsl_permutation_alloc(N);
     gsl_permutation_init(p);
@@ -335,15 +350,20 @@ int main(int argc, char *argv[]) {
     // Create binary tree
     node * root = create_empty_tree();
 
-    root = insert_node(root,5);
-    insert_node(root,4);
-    insert_node(root,7);
-    insert_node(root,2);
-    insert_node(root,1);
-    insert_node(root,6);
-    insert_node(root,3);
+    // printf("size of size_t is %lu\n", sizeof(size_t));
+    for (i=0; i<N; i++) {
+        root = insert_node(root, p->data[i]);
+    }
 
-    insert_node(root, 15);
+    // root = insert_node(root,5);
+    // insert_node(root,4);
+    // insert_node(root,7);
+    // insert_node(root,2);
+    // insert_node(root,1);
+    // insert_node(root,6);
+    // insert_node(root,3);
+
+    // insert_node(root, 15);
 
     node * found_or_not = search_node(root, 15);
     if (found_or_not == NULL) {
@@ -380,13 +400,16 @@ int main(int argc, char *argv[]) {
     g_signal_connect(delete_button, "clicked", G_CALLBACK(delete_and_redraw), root);
     gtk_box_pack_start(GTK_BOX(vbox), delete_button, FALSE, FALSE, 0);
 
+    // Connect scroll event for zooming
+    g_signal_connect(G_OBJECT(darea), "scroll-event", G_CALLBACK(on_scroll_event), NULL);
+
     // Show all widgets
     gtk_widget_show_all(window);
 
     gtk_main();
 
-    // root = delete_node(root, 4);
-    find_max(root);
+    
+    
 
     return 0;
 }
