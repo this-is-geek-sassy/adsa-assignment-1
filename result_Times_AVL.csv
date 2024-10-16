@@ -1,6 +1,5 @@
 Array Size, Total Insertion Time (seconds), Average Insertion Time (seconds), Total Deletion Time (seconds), Average Deletion Time (seconds)
-Array Size, Total Insertion Time (seconds), Average Insertion Time (seconds), Total Deletion Time (seconds), Average Deletion Time (seconds)
-10000, 0.282904, 0.002829, 0.034673, 0.000347
-100000, 4.499571, 0.044996, 0.653276, 0.006533
-1000000, 100.267614, 1.002676, 14.475818, 0.144758
-10000000, 1904.771462, 19.047715, 255.997125, 2.559971
+10000, 0.353897, 0.003539, 0.040442, 0.000404
+100000, 5.192345, 0.051923, 0.648746, 0.006487
+1000000, 105.369219, 1.053692, 14.800115, 0.148001
+10000000, 1834.862587, 18.348626, 235.539794, 2.355398
