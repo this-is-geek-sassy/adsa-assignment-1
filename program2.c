@@ -23,6 +23,9 @@ typedef struct tree_node
     struct tree_node * parent;
 } node;
 
+// global no_of_rotations:
+unsigned long long int no_of_rotations = 0;
+
 // Global zoom factor
 double zoom_factor = 1.0;
 
@@ -145,6 +148,7 @@ node * left_left_rotation(node * grandfather) {
     grandfather->height = avl_height(grandfather);
     father->height = avl_height(father);
 
+    no_of_rotations += 2;
     printf("ll rotation ended, new position holding by node: %lld\n", father->data);
 
     return father;
@@ -178,6 +182,7 @@ node * right_right_rotation (node * grandfather) {
     grandfather->height = avl_height(grandfather);
     father->height = avl_height(father);
 
+    no_of_rotations += 2;
     printf("rr rotation ended, new position holding by node: %lld\n", father->data);
 
     return father;
@@ -236,6 +241,7 @@ node *leftRotate(node * x) {
     x->height = avl_height(x);
     y->height = avl_height(y);
 
+    no_of_rotations++;
     return y;
 }
 
@@ -264,6 +270,7 @@ node *rightRotate(node * y) {
     y->height = avl_height(y);
     x->height = avl_height(x);
 
+    no_of_rotations++;
     return x;
 }
 
@@ -632,8 +639,14 @@ node * delete_and_redraw(GtkWidget *widget, gpointer data) {
 
 int main(int argc, char *argv[]) {
 
-    gtk_init(&argc, &argv);
+    int choice;
+    printf("Do you want to go with vizulaizations? \n\
+            Prees 0 if no, press 1 if yes.\n");
+    scanf("%d", &choice);
 
+    if (choice) {
+        gtk_init(&argc, &argv);
+    }
     int i;
     int sizes[] = {pow(10,1), pow(10,2), pow(10,3), pow(10,4)};
     const gsl_rng_type * T;
@@ -650,7 +663,7 @@ int main(int argc, char *argv[]) {
     printf("%d %d \n", any_number, sizes[any_number]);
 
     // N = sizes[any_number];
-    N = 30;
+    N = pow(10,5);
 
     gsl_permutation * p = gsl_permutation_alloc(N);
     gsl_permutation_init(p);
@@ -691,48 +704,51 @@ int main(int argc, char *argv[]) {
 
     // insert_node(root, 15);
 
-    // node * found_or_not = search_node(root, 15);
-    // if (found_or_not == NULL) {
-    //     printf("node not found\n");
-    // } else {
-    //     printf("found at location: %p %lld\n", found_or_not, found_or_not->data);
-    // }
+    node * found_or_not = search_node(root, 15);
+    if (found_or_not == NULL) {
+        printf("node not found\n");
+    } else {
+        printf("found at location: %p %lld\n", found_or_not, found_or_not->data);
+    }
 
-    // printf("parent of node 4 is: %lld\n", search_node(root, 4)->parent->data);
-    // printf("parent of node 15 is: %lld\n", search_node(root, 15)->parent->data);
+    printf("parent of node 4 is: %lld\n", search_node(root, 4)->parent->data);
+    printf("parent of node 15 is: %lld\n", search_node(root, 15)->parent->data);
+    printf("Total number of rotations: %lld\n", no_of_rotations);
 
-    // Create GTK window
-    GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_title(GTK_WINDOW(window), "Binary Tree");
-    gtk_window_set_default_size(GTK_WINDOW(window), 800, 600);
-    g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    if (choice) {
+        // Create GTK window
+        GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+        gtk_window_set_title(GTK_WINDOW(window), "Binary Tree");
+        gtk_window_set_default_size(GTK_WINDOW(window), 800, 600);
+        g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
-    // Create layout container
-    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
-    gtk_container_add(GTK_CONTAINER(window), vbox);
+        // Create layout container
+        GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+        gtk_container_add(GTK_CONTAINER(window), vbox);
 
-    // Create drawing area
-    GtkWidget *darea = gtk_drawing_area_new();
-    gtk_box_pack_start(GTK_BOX(vbox), darea, TRUE, TRUE, 0);
-    g_signal_connect(G_OBJECT(darea), "draw", G_CALLBACK(on_draw_event), root);
+        // Create drawing area
+        GtkWidget *darea = gtk_drawing_area_new();
+        gtk_box_pack_start(GTK_BOX(vbox), darea, TRUE, TRUE, 0);
+        g_signal_connect(G_OBJECT(darea), "draw", G_CALLBACK(on_draw_event), root);
 
-    // Create button to insert and redraw tree
-    GtkWidget *insert_button = gtk_button_new_with_label("Insert Node");
-    g_signal_connect(insert_button, "clicked", G_CALLBACK(insert_and_redraw), root);
-    gtk_box_pack_start(GTK_BOX(vbox), insert_button, FALSE, FALSE, 0);
+        // Create button to insert and redraw tree
+        GtkWidget *insert_button = gtk_button_new_with_label("Insert Node");
+        g_signal_connect(insert_button, "clicked", G_CALLBACK(insert_and_redraw), root);
+        gtk_box_pack_start(GTK_BOX(vbox), insert_button, FALSE, FALSE, 0);
 
-    // Create button to delete and redraw tree
-    GtkWidget *delete_button = gtk_button_new_with_label("Delete Node");
-    g_signal_connect(delete_button, "clicked", G_CALLBACK(delete_and_redraw), root);
-    gtk_box_pack_start(GTK_BOX(vbox), delete_button, FALSE, FALSE, 0);
+        // Create button to delete and redraw tree
+        GtkWidget *delete_button = gtk_button_new_with_label("Delete Node");
+        g_signal_connect(delete_button, "clicked", G_CALLBACK(delete_and_redraw), root);
+        gtk_box_pack_start(GTK_BOX(vbox), delete_button, FALSE, FALSE, 0);
 
-    // Connect scroll event for zooming
-    g_signal_connect(G_OBJECT(darea), "scroll-event", G_CALLBACK(on_scroll_event), NULL);
+        // Connect scroll event for zooming
+        g_signal_connect(G_OBJECT(darea), "scroll-event", G_CALLBACK(on_scroll_event), NULL);
 
-    // Show all widgets
-    gtk_widget_show_all(window);
+        // Show all widgets
+        gtk_widget_show_all(window);
 
-    gtk_main();
+        gtk_main();
+    }
 
     
     printf("Height of the BST is: %d\n", height(root));
