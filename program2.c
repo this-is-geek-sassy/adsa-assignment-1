@@ -123,7 +123,7 @@ bool is_tree_empty(node * tree) {
 
 node * left_left_rotation(node * grandfather) {
 
-    printf("ll rotation called on node %lld\n", grandfather->data);
+    // printf("ll rotation called on node %lld\n", grandfather->data);
 
     node * father = grandfather->left;
     node * child = father->left;
@@ -149,14 +149,14 @@ node * left_left_rotation(node * grandfather) {
     father->height = avl_height(father);
 
     no_of_rotations += 2;
-    printf("ll rotation ended, new position holding by node: %lld\n", father->data);
+    // printf("ll rotation ended, new position holding by node: %lld\n", father->data);
 
     return father;
 }
 
 node * right_right_rotation (node * grandfather) {
 
-    printf("rr rotation called on node %lld\n", grandfather->data);
+    // printf("rr rotation called on node %lld\n", grandfather->data);
 
     node * father = grandfather->right;
     node * child = father->right;
@@ -183,14 +183,14 @@ node * right_right_rotation (node * grandfather) {
     father->height = avl_height(father);
 
     no_of_rotations += 2;
-    printf("rr rotation ended, new position holding by node: %lld\n", father->data);
+    // printf("rr rotation ended, new position holding by node: %lld\n", father->data);
 
     return father;
 }
 
 node * right_left_rotation(node * grandfather) {
 
-    printf("rl rotation called on node %lld\n", grandfather->data);
+    // printf("rl rotation called on node %lld\n", grandfather->data);
 
     node * father = grandfather->right;
     node * child = father->left;
@@ -198,13 +198,13 @@ node * right_left_rotation(node * grandfather) {
     node * new_father = left_left_rotation(father);
     node * new_grandfather = right_right_rotation(grandfather);
 
-    printf("rl rotation ended, new position is holding by node: %lld\n", new_father->data);
+    // printf("rl rotation ended, new position is holding by node: %lld\n", new_father->data);
     return new_father;
 }
 
 node * left_right_rotation(node * grandfather) {
 
-    printf("lr rotation called on node %lld\n", grandfather->data);
+    // printf("lr rotation called on node %lld\n", grandfather->data);
 
     node * father = grandfather->left;
     node * child = father->right;
@@ -212,14 +212,14 @@ node * left_right_rotation(node * grandfather) {
     node * new_father = right_right_rotation(father);
     node * new_grandfather = left_left_rotation(grandfather);
 
-    printf("lr rotation ended, new position is holding by node: %lld\n", new_father->data);
+    // printf("lr rotation ended, new position is holding by node: %lld\n", new_father->data);
     return new_father;
 }
 
 
 // Special Left rotate;  function taken from: www.programiz.com/dsa/avl-tree
 node *leftRotate(node * x) {
-    printf("left rotate function called on %lld\n", x->data);
+    // printf("left rotate function called on %lld\n", x->data);
     node * y = x->right;
     node * T2 = y->left;
 
@@ -247,7 +247,7 @@ node *leftRotate(node * x) {
 
 // Special Right rotate;  function taken from: www.programiz.com/dsa/avl-tree
 node *rightRotate(node * y) {
-    printf("right rotate function called on %lld\n", y->data);
+    // printf("right rotate function called on %lld\n", y->data);
     node * x = y->left;
     node * T2 = x->right;
 
@@ -306,7 +306,7 @@ node * insert_node(node * tree, long long unsigned int data) {
     new_node->parent = parent_ptr;
 
     if (parent_ptr->parent == NULL) {
-        printf("\nInsertion success. %lld inserted.\n", new_node->data);
+        // printf("\nInsertion success. %lld inserted.\n", new_node->data);
         parent_ptr->height = avl_height(parent_ptr);
         return parent_ptr;
     }
@@ -327,24 +327,24 @@ node * insert_node(node * tree, long long unsigned int data) {
     grandparent_ptr->height = avl_height(grandparent_ptr);
     
     if (abs(grandparent_ptr->height) >= 2) {
-        printf("%lld->height: %lld\n", grandparent_ptr->data, grandparent_ptr->height);
+        // printf("%lld->height: %lld\n", grandparent_ptr->data, grandparent_ptr->height);
 
         if (new_node->data < grandparent_ptr->data && new_node-> data < parent_ptr->data) {
             node * father = left_left_rotation(grandparent_ptr);
-            printf("new avl height of father of %lld is: %lld\n", new_node->data, avl_height(father));
+            // printf("new avl height of father of %lld is: %lld\n", new_node->data, avl_height(father));
         }
         else if (new_node->data > grandparent_ptr->data && new_node-> data > parent_ptr->data)
         {
             node * father = right_right_rotation(grandparent_ptr);
-            printf("new avl height of father of %lld is: %lld\n", new_node->data, avl_height(father));
+            // printf("new avl height of father of %lld is: %lld\n", new_node->data, avl_height(father));
         }
         else if (new_node->data > grandparent_ptr->data && new_node-> data < parent_ptr->data) {
             node * father = right_left_rotation(grandparent_ptr);
-            printf("new avl height of father of %lld is: %lld\n", new_node->data, avl_height(father));
+            // printf("new avl height of father of %lld is: %lld\n", new_node->data, avl_height(father));
         }
         else if (new_node->data < grandparent_ptr->data && new_node-> data > parent_ptr->data) {
             node * father = left_right_rotation(grandparent_ptr);
-            printf("new avl height of father of %lld is: %lld\n", new_node->data, avl_height(father));
+            // printf("new avl height of father of %lld is: %lld\n", new_node->data, avl_height(father));
         }
         
     }
@@ -647,11 +647,11 @@ int main(int argc, char *argv[]) {
     if (choice) {
         gtk_init(&argc, &argv);
     }
-    int i;
+    unsigned long long int i;
     int sizes[] = {pow(10,1), pow(10,2), pow(10,3), pow(10,4)};
     const gsl_rng_type * T;
     gsl_rng * r;
-    size_t N;
+    unsigned long long int N;
 
     gsl_rng_env_setup();
     T = gsl_rng_default;
@@ -663,7 +663,7 @@ int main(int argc, char *argv[]) {
     printf("%d %d \n", any_number, sizes[any_number]);
 
     // N = sizes[any_number];
-    N = pow(10,5);
+    N = pow(10,6);
 
     gsl_permutation * p = gsl_permutation_alloc(N);
     gsl_permutation_init(p);
@@ -689,6 +689,7 @@ int main(int argc, char *argv[]) {
     printf("size of size_t is %lu\n", sizeof(size_t));
     for (i=0; i<N; i++) {
         root = insert_node(root, p->data[i]);
+        printf("%lld / %lld nodes inserted\n", (i+1), N);
     }
 
     // root = insert_node(root, 6);
