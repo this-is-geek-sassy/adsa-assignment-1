@@ -211,6 +211,62 @@ node * left_right_rotation(node * grandfather) {
     return new_father;
 }
 
+
+// Special Left rotate;  function taken from: www.programiz.com/dsa/avl-tree
+node *leftRotate(node * x) {
+    printf("left rotate function called on %lld\n", x->data);
+    node * y = x->right;
+    node * T2 = y->left;
+
+    y->left = x;
+    y->parent = x->parent;
+    x->right = T2;
+
+    if (x->parent) {
+        if (x->parent->left == x) {
+            x->parent->left = y;
+        } else {
+            x->parent->right = y;
+        }
+    }
+    if (T2)
+        T2->parent = x;
+    x->parent = y;
+
+    x->height = avl_height(x);
+    y->height = avl_height(y);
+
+    return y;
+}
+
+// Special Right rotate;  function taken from: www.programiz.com/dsa/avl-tree
+node *rightRotate(node * y) {
+    printf("right rotate function called on %lld\n", y->data);
+    node * x = y->left;
+    node * T2 = x->right;
+
+    x->right = y;
+    x->parent = y->parent;
+    y->left = T2;
+
+    if (y->parent) {
+        if (y->parent->left == y) {
+            y->parent->left = x;
+        } else {
+            y->parent->right = x;
+        }
+    }
+
+    if (T2) 
+        T2->parent = y;
+    y->parent = x;
+
+    y->height = avl_height(y);
+    x->height = avl_height(x);
+
+    return x;
+}
+
 node * insert_node(node * tree, long long unsigned int data) {
 
     node * new_node = create_node(data);
@@ -352,7 +408,82 @@ node * find_max(node * root) {
     return current; // The rightmost node contains the maximum value
 }
 
-node * delete_node(node * tree, long long int data){
+void fix_up(node * tree, node * grandparent_ptr, node * parent_ptr, node * new_node) {
+
+    printf("%lld->height: %lld\n", grandparent_ptr->data, grandparent_ptr->height);
+
+    if (new_node->data < grandparent_ptr->data && new_node-> data < parent_ptr->data) {
+        node * father = left_left_rotation(grandparent_ptr);
+        printf("new avl height of father of %lld is: %lld\n", new_node->data, avl_height(father));
+    }
+    else if (new_node->data > grandparent_ptr->data && new_node-> data > parent_ptr->data)
+    {
+        node * father = right_right_rotation(grandparent_ptr);
+        printf("new avl height of father of %lld is: %lld\n", new_node->data, avl_height(father));
+    }
+    else if (new_node->data > grandparent_ptr->data && new_node-> data < parent_ptr->data) {
+        node * father = right_left_rotation(grandparent_ptr);
+        printf("new avl height of father of %lld is: %lld\n", new_node->data, avl_height(father));
+    }
+    else if (new_node->data < grandparent_ptr->data && new_node-> data > parent_ptr->data) {
+        node * father = left_right_rotation(grandparent_ptr);
+        printf("new avl height of father of %lld is: %lld\n", new_node->data, avl_height(father));
+    }
+    
+
+}
+
+node * finish_deletion(node * tree, node * node_to_be_deleted, int o_val) {
+
+    if (o_val == -1) {  // leaf node
+        node * father = node_to_be_deleted->parent, * new_root = NULL;
+        int right_rotation = 0, left_rotation = 0;
+
+        if (father->left == node_to_be_deleted) {
+            father->left = NULL;
+            left_rotation = 1;
+        } else {
+            father->right = NULL;
+            right_rotation = 1;
+        }
+        if (father->parent == NULL) {
+            father->height = avl_height(father);
+        }
+        if (left_rotation && abs(father->height) >= 2)
+        {
+            new_root = leftRotate(father);
+        }
+        else if (right_rotation && abs(father->height) >= 2)
+        {
+            new_root = rightRotate(father);
+        }
+
+        if (new_root->parent != NULL) {
+            node * grandfather = new_root->parent;
+            grandfather->height = avl_height(grandfather);
+
+            while(grandfather != tree) {
+                grandfather->height = avl_height(grandfather);
+                if (abs(grandfather->height) >= 2) {
+                    fix_up(tree, grandfather, father, new_root);
+                }
+                new_root = father;
+                father = grandfather;
+                grandfather = grandfather->parent;
+            }
+            grandfather->height = avl_height(grandfather);
+            if (abs(grandfather->height) >= 2) {
+                fix_up(tree, grandfather, father, new_root);
+            }
+        }
+
+        if (new_root)
+            return new_root;
+        return father;
+    }
+}
+
+node * delete_node(node * tree, long long int data) {
 
     // search the node first
     node * node_to_be_deleted = search_node(tree, data);
@@ -372,12 +503,20 @@ node * delete_node(node * tree, long long int data){
     }
     else if (val == -1 && !is_singleton_tree(tree)) {
         node * parent_ptr = node_to_be_deleted->parent;
-        if (parent_ptr->left == node_to_be_deleted) {
-            parent_ptr->left = NULL;
-        } else {
-            parent_ptr->right = NULL;
-        }
+        // if (parent_ptr->left == node_to_be_deleted) {
+        //     parent_ptr->left = NULL;
+        //     parent_ptr->height = avl_height(parent_ptr);
+        //     if (abs(parent_ptr->height) >= 2)
+        //         leftRotate(parent_ptr);
+        // } else {
+        //     parent_ptr->right = NULL;
+        //     parent_ptr->height = avl_height(parent_ptr);
+        //     if (abs(parent_ptr->height) >= 2)
+        //         rightRotate(parent_ptr);
+        // }
+        finish_deletion(tree, node_to_be_deleted, val);
         printf("leaf node deletion (%lld) success.\n", node_to_be_deleted->data);
+        
         free(node_to_be_deleted);
     }
     else if(val == 0){
@@ -433,6 +572,13 @@ node * delete_node(node * tree, long long int data){
                 node_to_be_deleted->data, inorder_predecessor->data);
         free(node_to_be_deleted);
     }
+
+    while (tree->parent != NULL)
+    {
+        tree = tree->parent;
+    }
+
+    return tree;
 }
 
 // Scroll event handler to zoom in/out
@@ -448,7 +594,7 @@ gboolean on_scroll_event(GtkWidget *widget, GdkEventScroll *event, gpointer data
 }
 
 
-void insert_and_redraw(GtkWidget *widget, gpointer data) {
+node * insert_and_redraw(GtkWidget *widget, gpointer data) {
     node *root = (node *)data;
     long long unsigned int new_value;  // Example value, you can take input from a user
     printf("\nEnter the new value to enter into the tree\n");
@@ -456,9 +602,11 @@ void insert_and_redraw(GtkWidget *widget, gpointer data) {
     root = insert_node(root, new_value);
 
     gtk_widget_queue_draw(widget);  // Request redraw of the drawing area
+
+    return root;
 }
 
-void delete_and_redraw(GtkWidget *widget, gpointer data) {
+node * delete_and_redraw(GtkWidget *widget, gpointer data) {
     node *root = (node *)data;
     long long int delete_value;  // Example value to delete
     printf("\nEnter the new value to delete from the tree\n");
@@ -466,6 +614,8 @@ void delete_and_redraw(GtkWidget *widget, gpointer data) {
     root = delete_node(root, delete_value);
 
     gtk_widget_queue_draw(widget);  // Request redraw of the drawing area
+
+    return root;
 }
 
 
@@ -514,18 +664,19 @@ int main(int argc, char *argv[]) {
     node * root = create_empty_tree();
 
     printf("size of size_t is %lu\n", sizeof(size_t));
-    for (i=0; i<N; i++) {
-        root = insert_node(root, p->data[i]);
-    }
+    // for (i=0; i<N; i++) {
+    //     root = insert_node(root, p->data[i]);
+    // }
 
     // root = insert_node(root, 6);
-    // root = insert_node(root, 14);
-    // root = insert_node(root, 7);
+    root = insert_node(root, 14);
+    root = insert_node(root, 6);
     
-    // insert_node(root,1);
+    root = insert_node(root,20);
     // insert_node(root,6);
     // insert_node(root,3);
-    // insert_node(root, 20);
+    root = insert_node(root, 1);
+    root = delete_node(root, 20);
     // insert_node(root, 21);
 
     // insert_node(root, 15);
