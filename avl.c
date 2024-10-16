@@ -297,7 +297,7 @@ int main() {
         for (int i = 0; i < num_of_samples; i++) {
             // Safely format the filename with array size and index, ensuring no buffer overflow occurs
             char filename[256];
-            snprintf(filename, sizeof(filename), "array_%d_%d.txt", sizes[s], i + 1);
+            snprintf(filename, sizeof(filename), "random_array_%d_%d.txt", sizes[s], i + 1);
 
             // Read the array data from the file
             read_file(filename, data, sizes[s]);
@@ -323,7 +323,7 @@ int main() {
 
 
             // Output to the insertOutput file
-            fprintf(insert_output, "array_%d_%d.txt, %d, %d\n", sizes[s], i + 1, total_rotations_insert[i], total_heights_insert[i]);
+            fprintf(insert_output, "random_array_%d_%d.txt, %d, %d\n", sizes[s], i + 1, total_rotations_insert[i], total_heights_insert[i]);
 
             // Reset rotation count before deletions
             total_rotations = 0;
