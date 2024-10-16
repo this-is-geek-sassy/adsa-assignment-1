@@ -35,7 +35,7 @@ int main() {
     for (i=0; i<100; i++) {
 
         char filename[256];
-        snprintf(filename, sizeof(filename), "array_%lu_%d.txt", N, i + 1);
+        snprintf(filename, sizeof(filename), "random_array_%lu_%d.txt", N, i + 1);
 
         FILE * record = fopen(filename, "a+");
         if (record == NULL) {

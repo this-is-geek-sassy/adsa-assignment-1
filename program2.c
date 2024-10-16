@@ -689,7 +689,7 @@ int main(int argc, char *argv[]) {
     printf("size of size_t is %lu\n", sizeof(size_t));
     for (i=0; i<N; i++) {
         root = insert_node(root, p->data[i]);
-        printf("%lld / %lld nodes inserted\n", (i+1), N);
+        // printf("%lld / %lld nodes inserted\n", (i+1), N);
     }
 
     // root = insert_node(root, 6);
