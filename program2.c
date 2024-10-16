@@ -522,10 +522,20 @@ node * delete_node(node * tree, long long int data) {
     else if(val == 0){
         // the left subtree is blank
         node * parent_ptr = node_to_be_deleted->parent;
-        if (parent_ptr->left == node_to_be_deleted) {
+        if (parent_ptr && (parent_ptr->left == node_to_be_deleted)) {
             parent_ptr->left = node_to_be_deleted->right;
-        } else {
+
+            parent_ptr->height = avl_height(parent_ptr);
+            if (parent_ptr->height >= 2) {
+                left_right_rotation(parent_ptr);
+            }
+        } else if (parent_ptr) {
             parent_ptr->right = node_to_be_deleted->right;
+
+            parent_ptr->height = avl_height(parent_ptr);
+            if (parent_ptr->height >= 2) {
+                right_right_rotation(parent_ptr);
+            }
         }
         node_to_be_deleted->right->parent = parent_ptr;
         free(node_to_be_deleted);
@@ -664,19 +674,19 @@ int main(int argc, char *argv[]) {
     node * root = create_empty_tree();
 
     printf("size of size_t is %lu\n", sizeof(size_t));
-    // for (i=0; i<N; i++) {
-    //     root = insert_node(root, p->data[i]);
-    // }
+    for (i=0; i<N; i++) {
+        root = insert_node(root, p->data[i]);
+    }
 
     // root = insert_node(root, 6);
-    root = insert_node(root, 14);
-    root = insert_node(root, 6);
+    // root = insert_node(root, 14);
+    // root = insert_node(root, 6);
     
-    root = insert_node(root,20);
-    // insert_node(root,6);
-    // insert_node(root,3);
-    root = insert_node(root, 1);
-    root = delete_node(root, 20);
+    // root = insert_node(root,20);
+    // // insert_node(root,6);
+    // // insert_node(root,3);
+    // root = insert_node(root, 1);
+    // root = delete_node(root, 20);
     // insert_node(root, 21);
 
     // insert_node(root, 15);
