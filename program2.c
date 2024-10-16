@@ -261,6 +261,7 @@ node * insert_node(node * tree, long long unsigned int data) {
         parent_ptr = grandparent_ptr;
         grandparent_ptr = grandparent_ptr->parent;
     }
+    grandparent_ptr->height = avl_height(grandparent_ptr);
     
     if (abs(grandparent_ptr->height) >= 2) {
         printf("%lld->height: %lld\n", grandparent_ptr->data, grandparent_ptr->height);
@@ -489,7 +490,7 @@ int main(int argc, char *argv[]) {
     printf("%d %d \n", any_number, sizes[any_number]);
 
     // N = sizes[any_number];
-    N = 20;
+    N = 30;
 
     gsl_permutation * p = gsl_permutation_alloc(N);
     gsl_permutation_init(p);
